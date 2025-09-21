@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#define BUFFER_SIZE 1024
 
 int main() {
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -22,8 +23,17 @@ int main() {
     if (connect(socket_fd, reinterpret_cast<struct sockaddr *>(&server), sizeof(server)) < 0) {
         perror("connect error");
     }
-    char str[] = "hello world";
-    send(socket_fd, str, strlen(str), 0);
+
+
+
+    char buf[BUFFER_SIZE];
+    bzero(&buf, sizeof(buf));
+    scanf("%s", buf);
+    ssize_t write_bytes = send(socket_fd, buf, strlen(buf),0);
+    if(write_bytes == -1){
+        printf("socket already disconnected, can't write any more!\n");
+        return -1;
+    }
 
     close(socket_fd);
     return 0;
