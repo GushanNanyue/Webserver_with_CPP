@@ -51,7 +51,7 @@ void Epoll::update_channel(Channel* channel) {
         if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) < 0) {
             perror("epoll_ctl add");
         }
-        channel->set_in_epoll();
+        channel->set_in_epoll(true);
     }else {
         if (epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &ev) < 0) {
             perror("epoll_ctl modify");

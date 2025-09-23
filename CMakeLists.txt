@@ -4,13 +4,17 @@ project(Webserver_with_CPP)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(server socket_server_test.cpp
-        Socket.cpp
-        Socket.h
-        NetAddress.cpp
-        NetAddress.h
-        Epoll.cpp
-        Epoll.h
-        Channel.cpp
-        Channel.h
+        src/Socket.cpp
+        src/Socket.h
+        src/NetAddress.cpp
+        src/NetAddress.h
+        src/Epoll.cpp
+        src/Epoll.h
+        src/Channel.cpp
+        src/Channel.h
+        src/Server.cpp
+        src/Server.h
+        src/EventLoop.cpp
+        src/EventLoop.h
 )
 add_executable(client socket_client_test.cpp)
