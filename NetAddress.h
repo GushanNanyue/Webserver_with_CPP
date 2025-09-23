@@ -8,13 +8,13 @@
 #include <cstdint>
 #include <netinet/in.h>
 
-class Net_Address {
+class NetAddress {
     public:
     sockaddr_in address_;
     socklen_t address_length_;
-    Net_Address();
-    Net_Address(std::string_view ip,uint16_t port);
-    ~Net_Address();
+    NetAddress();
+    NetAddress(std::string_view ip,uint16_t port);
+    ~NetAddress();
 };
 
 

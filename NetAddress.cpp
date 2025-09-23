@@ -4,17 +4,17 @@
 
 #include <string>
 #include <arpa/inet.h>
-#include "Net_Address.h"
+#include "NetAddress.h"
 
 #include <stdexcept>
 
-Net_Address::Net_Address()
+NetAddress::NetAddress()
     : address_{},  // 全部清零
       address_length_{sizeof(address_)} {
 
 }
 
-Net_Address::Net_Address(std::string_view ip, uint16_t port)
+NetAddress::NetAddress(std::string_view ip, uint16_t port)
     : address_{},  // 全部清零
       address_length_{sizeof(address_)}
 {
@@ -25,4 +25,4 @@ Net_Address::Net_Address(std::string_view ip, uint16_t port)
     }
 }
 
-Net_Address::~Net_Address() = default;
+NetAddress::~NetAddress() = default;

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <arpa/inet.h>
 
+#include "Channel.h"
 #include "Epoll.h"
 #include "Socket.h"
 
@@ -25,11 +26,11 @@ const static char* HTTP_RESPONSE =
 
 
 std::unordered_map<int, Socket*> clients;
-std::unordered_map<int, Net_Address*> client_addresses;
+std::unordered_map<int, NetAddress*> client_addresses;
 
 void handle_read_event(int fd, Epoll* ep,
                        std::unordered_map<int, Socket*>& clients_map,
-                       std::unordered_map<int, Net_Address*>& client_addresses_map) {
+                       std::unordered_map<int, NetAddress*>& client_addresses_map) {
     while (true) {
         char buf[READ_BUFFER_SIZE];
         ssize_t read_size = recv(fd, buf, READ_BUFFER_SIZE, 0);
@@ -90,7 +91,7 @@ int main() {
     // 创建 server socket
     Socket *server_socket = new Socket();
     // 创建 server addr
-    Net_Address *server_addr = new Net_Address("127.0.0.1",8000);
+    NetAddress *server_addr = new NetAddress("127.0.0.1",8000);
     // bind
     server_socket->bind(server_addr);
     // listen
@@ -98,31 +99,37 @@ int main() {
     server_socket->set_nonblocking();
     // 创建 epoll
     Epoll *ep = new Epoll(MAX_EVENTS);
-
-    // 将 server_fd 加入监听事件队列
-    ep->add_event(server_socket->get_fd(), EPOLLIN);
+    // 创建 channel 关联 epoll 和 fd
+    Channel* server_channel = new Channel(ep,server_socket->get_fd());
+    // 将 channel 设置为监听可读事件
+    server_channel->enable_reading();
     while(true) {
-        // 获取事件队列
+        // 获取 channel 队列
         auto events = ep->wait_events(-1);
         // 遍历一个个处理
         for (auto &ev:events) {
-            int fd = ev.data.fd;
+            int fd = ev->get_fd();
             // 新连接
             if (fd == server_socket->get_fd()) {
-                Net_Address *client_addr = new Net_Address();
+                NetAddress *client_addr = new NetAddress();
                 Socket *client_socket = new Socket(server_socket->accept(client_addr));
                 printf("new client fd %d! IP: %s Port: %d\n", client_socket->get_fd(), inet_ntoa(client_addr->address_.sin_addr), ntohs(client_addr->address_.sin_port));
                 client_socket->set_nonblocking();
-                ep->add_event(client_socket->get_fd(), EPOLLIN | EPOLLET);
+
+                // 创建客户端 channel
+                Channel* client_channel = new Channel(ep,client_socket->get_fd());
+                // 将 channel 设置为监听可读事件
+                client_channel->enable_reading();
 
                 // 将客户端注册到映射
                 clients[client_socket->get_fd()] = client_socket;
                 client_addresses[client_socket->get_fd()] = client_addr;
 
+
             }
             // 可读事件
-            else if (ev.events & EPOLLIN) {
-                handle_read_event(ev.data.fd,ep,clients, client_addresses);
+            else if (ev->get_return_events() & EPOLLIN) {
+                handle_read_event(ev->get_fd(),ep,clients, client_addresses);
             }
             else {
                 printf("unknown event\n");

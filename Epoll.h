@@ -8,6 +8,8 @@
 #include <sys/epoll.h>
 
 
+class Channel;
+
 class Epoll {
     private:
         int epoll_fd_;
@@ -18,7 +20,9 @@ class Epoll {
         ~Epoll();
         void add_event(int fd, uint32_t events);
         void remove_event(int fd);
-        std::vector<epoll_event> wait_events(int timeout);
+        void update_channel(Channel* channel);
+
+        std::vector<Channel*> wait_events(int timeout);
 
 };
 

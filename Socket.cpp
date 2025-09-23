@@ -32,7 +32,7 @@ Socket::~Socket() {
     }
 }
 
-void Socket::bind(Net_Address *addr) {
+void Socket::bind(NetAddress *addr) {
     if (::bind(sock_fd_,reinterpret_cast<sockaddr *>(&addr->address_),addr->address_length_) < 0) {
         perror("bind error");
     }
@@ -53,7 +53,7 @@ void Socket::set_nonblocking() {
         perror("fcntl failed");
 }
 
-int Socket::accept(Net_Address* address) {
+int Socket::accept(NetAddress* address) {
     int conn_fd = ::accept(sock_fd_,reinterpret_cast<sockaddr *>(&address->address_),&address->address_length_);
     return conn_fd;
 }

@@ -6,6 +6,9 @@
 #include <cstdio>
 #include <unistd.h>
 
+#include "Channel.h"
+
+
 Epoll::Epoll(int max_events)
     :max_events_(max_events)
 {
@@ -39,10 +42,34 @@ void Epoll::remove_event(int fd) {
     }
 }
 
-std::vector<epoll_event> Epoll::wait_events(int timeout = -1) {
+void Epoll::update_channel(Channel* channel) {
+    int fd = channel->get_fd();
+    epoll_event ev{};
+    ev.data.ptr = channel;
+    ev.events = channel->get_relate_events();
+    if (!channel->get_in_epoll()) {
+        if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) < 0) {
+            perror("epoll_ctl add");
+        }
+        channel->set_in_epoll();
+    }else {
+        if (epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &ev) < 0) {
+            perror("epoll_ctl modify");
+        }
+    }
+}
+
+
+std::vector<Channel*> Epoll::wait_events(int timeout = -1) {
     int event_count = epoll_wait(epoll_fd_,events_.data(),max_events_,timeout);
     if (event_count == -1) perror("epoll_wait");
-    return {events_.begin(), events_.begin() + event_count};
+    std::vector<Channel*> active_channels;
+    for (int i = 0; i < event_count; i++) {
+        auto *ch = static_cast<Channel *>(events_[i].data.ptr);
+        ch->set_return_events(events_[i].events);
+        active_channels.push_back(ch);
+    }
+    return active_channels;
 }
 
 

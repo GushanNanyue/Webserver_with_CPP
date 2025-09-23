@@ -4,7 +4,7 @@
 
 #ifndef WEBSERVER_WITH_CPP_SOCKET_H
 #define WEBSERVER_WITH_CPP_SOCKET_H
-#include "Net_Address.h"
+#include "NetAddress.h"
 
 
 class Socket {
@@ -15,11 +15,11 @@ class Socket {
         explicit Socket(int sock_fd);
         ~Socket();
 
-        void bind(Net_Address* addr);
+        void bind(NetAddress* addr);
         void listen();
         void set_nonblocking();
 
-        int accept(Net_Address* addr);
+        int accept(NetAddress* addr);
         int get_fd();
 
 };
