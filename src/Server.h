@@ -5,13 +5,14 @@
 #ifndef WEBSERVER_WITH_CPP_SERVER_H
 #define WEBSERVER_WITH_CPP_SERVER_H
 
-
 class Epoll;
 class Socket;
 class EventLoop;
+class Acceptor;
 class Server {
     private:
         EventLoop *loop_;
+        Acceptor* acceptor_;
     public:
         explicit Server(EventLoop *loop);
         ~Server();

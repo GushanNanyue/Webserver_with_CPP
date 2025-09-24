@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+#include "Acceptor.h"
 #include "Channel.h"
 #include "Epoll.h"
 #include "EventLoop.h"
@@ -24,31 +25,15 @@ const static char* HTTP_RESPONSE =
 
 
 Server::Server(EventLoop *loop)
-    : loop_(loop)
+    : loop_(loop),acceptor_(nullptr)
 {
-    // “老三样”
-    // 创建 server socket
-    Socket *server_socket = new Socket();
-    // 创建 server addr
-    NetAddress *server_addr = new NetAddress("127.0.0.1",8000);
-    // bind
-    server_socket->bind(server_addr);
-    // listen
-    server_socket->listen();
-    server_socket->set_nonblocking();
-
-    // 创建 channel 关联 epoll 和 fd
-    Channel* server_channel = new Channel(loop,server_socket->get_fd());
-    // 设置回调函数
-    std::function<void()> cb = [this, server_socket] { handle_new_connection(server_socket); };
-    server_channel->set_callback(cb);
-    // 将 channel 设置为监听可读事件
-    server_channel->enable_reading();
-
+    acceptor_ = new Acceptor(loop);
+    std::function<void(Socket*)> cb = [this](auto && PH1) { handle_new_connection(std::forward<decltype(PH1)>(PH1)); };
+    acceptor_->set_new_connection_callback(cb);
 }
 
 Server::~Server() {
-
+    delete acceptor_;
 }
 
 void Server::handle_new_connection(Socket *socket) {

@@ -17,6 +17,6 @@
 <p> 使用OOP的方式重新构建服务端。 </p>
 
 ## 2025/9/23
-<p> 添加 Channel 使 epoll 和 fd 对应。 </p>
+<p> 在服务端添加 Channel 使 epoll 和 fd 对应,并构建简易的 Reactor 模型 </p>
 
 

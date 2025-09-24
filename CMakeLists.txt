@@ -16,5 +16,7 @@ add_executable(server socket_server_test.cpp
         src/Server.h
         src/EventLoop.cpp
         src/EventLoop.h
+        src/Acceptor.cpp
+        src/Acceptor.h
 )
 add_executable(client socket_client_test.cpp)
