@@ -1,18 +1,13 @@
 //
-// Created by cl on 2025/9/23.
+// Created by cl on 2025/9/24.
 //
 
-#include "Server.h"
+#include "Connection.h"
 
 #include <cstring>
 #include <unistd.h>
-#include <arpa/inet.h>
 
-#include "Acceptor.h"
 #include "Channel.h"
-#include "Epoll.h"
-#include "EventLoop.h"
-#include "NetAddress.h"
 #include "Socket.h"
 
 const static int READ_BUFFER_SIZE = 1024;
@@ -24,26 +19,20 @@ const static char* HTTP_RESPONSE =
             "<h1> Hello World </h1>";
 
 
-Server::Server(EventLoop *loop)
-    : loop_(loop),acceptor_(nullptr)
+Connection::Connection(EventLoop * loop, Socket * socket )
+    : socket_(socket),loop_(loop)
 {
-    acceptor_ = new Acceptor(loop);
-    std::function<void(Socket*)> cb = [this](auto && PH1) { handle_new_connection(std::forward<decltype(PH1)>(PH1)); };
-    acceptor_->set_new_connection_callback(cb);
+    channel_ = new Channel(loop,socket->get_fd());
+    std::function cb = [this,program0 = socket->get_fd()]{handle_read_event(program0);};
+    channel_->set_callback(cb);
+    channel_->enable_reading();
 }
 
-Server::~Server() {
-    delete acceptor_;
+Connection::~Connection() {
+    delete channel_;
 }
 
-void Server::handle_new_connection(Socket *socket) {
-    Connection *new_connection = new Connection(loop_, socket);
-    std::function<void(Socket*)> cb = [this](auto && PH1) { delete_connection(std::forward<decltype(PH1)>(PH1)); };
-    new_connection->set_delete_connection_callback(cb);
-    connections_[socket->get_fd()] = new_connection;
-}
-
-void Server::handle_read_event(int fd,Epoll* ep) {
+void Connection::handle_read_event(int fd) {
     while (true) {
         char buf[READ_BUFFER_SIZE];
         ssize_t read_size = recv(fd, buf, READ_BUFFER_SIZE, 0);
@@ -70,28 +59,20 @@ void Server::handle_read_event(int fd,Epoll* ep) {
         else if (read_size < 0) {
             if (errno != EAGAIN && errno != EWOULDBLOCK) {
                 perror("recv");
-                ep->remove_event(fd);
-                close(fd);
+                delete_connection_callback_(socket_);
             }
             break;
         }
         else if (read_size == 0) {
             printf("client fd %d connection closed\n", fd);
-            ep->remove_event(fd);
-            close(fd);
+            delete_connection_callback_(socket_);
             break;
         }
     }
 }
 
-void Server::delete_connection(Socket *socket) {
-    loop_->remove_channel(socket->get_fd());
-    auto it = connections_.find(socket->get_fd());
-    if (it != connections_.end()) {
-        Connection *connection = it->second;
-        connections_.erase(it);
-        delete connection;
-    }
+void Connection::set_delete_connection_callback(std::function<void(Socket *)> cb) {
+    delete_connection_callback_ = std::move(cb);
 }
 
 

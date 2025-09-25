@@ -17,6 +17,7 @@ class EventLoop {
         ~EventLoop();
         void loop();
         void update_channel(Channel* channel);
+        void remove_channel(int);
         Epoll* get_epoll();
 
 };

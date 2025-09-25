@@ -17,6 +17,7 @@
 <p> 使用OOP的方式重新构建服务端。 </p>
 
 ## 2025/9/23
-<p> 在服务端添加 Channel 使 epoll 和 fd 对应,并构建简易的 Reactor 模型 </p>
+<p> 在服务端添加 Channel 使 epoll 和 fd 对应,解耦 Epoll 中关于fd事件和回调处理的部分,并构建 EventLoop 解耦事件循环,
+至此一个Epoll负责底层注册、Channel负责保存fd事件和绑定回调函数、EventLoop负责事件循环的简易的 Reactor 模型构建完毕。 </p>
 
 

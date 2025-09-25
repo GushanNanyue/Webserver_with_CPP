@@ -5,6 +5,7 @@
 #include "Acceptor.h"
 
 #include <utility>
+#include <arpa/inet.h>
 
 #include "Channel.h"
 #include "Socket.h"
@@ -39,7 +40,13 @@ Acceptor::~Acceptor() {
 }
 
 void Acceptor::accept_connection() {
-    accept_cb(socket_);
+    // 关闭时未 delete 有内存泄漏风险，后续解决
+    NetAddress *client_addr = new NetAddress();
+    Socket *client_socket = new Socket(socket_->accept(client_addr));
+    printf("new client fd %d! IP: %s Port: %d\n", client_socket->get_fd(), inet_ntoa(client_addr->address_.sin_addr), ntohs(client_addr->address_.sin_port));
+    client_socket->set_nonblocking();
+    accept_cb(client_socket);
+    delete client_addr;
 }
 
 void Acceptor::set_new_connection_callback(std::function<void(Socket*)> cb) {

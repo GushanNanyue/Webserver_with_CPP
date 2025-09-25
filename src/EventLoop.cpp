@@ -31,6 +31,10 @@ void EventLoop::update_channel(Channel *channel) {
     epoll_->update_channel(channel);
 }
 
+void EventLoop::remove_channel(int fd) {
+    epoll_->remove_event(fd);
+}
+
 Epoll* EventLoop::get_epoll() {
     return epoll_;
 }
